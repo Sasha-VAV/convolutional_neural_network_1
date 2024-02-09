@@ -78,12 +78,19 @@ class Network:
         self.save_weights(self)
         w_file = open('weights.txt')
         weights_file = w_file.readlines()
+        self.MP_weights = []
+        self.kernel_weights = []
         w_file.close()
+        for i in range(len(weights_file)):
+            s = weights_file[i]
+            array_2 = []
+            if self.operations[i] == 0:
+                s.split(';')
 
     def save_weights(self, act_random = True):
         w_file = open('weights.txt', 'w')
         if act_random:
-            counter =0
+            counter = 0
             for i in range(len(self.size) -1):
                 if self.operations[i] == 0:
                     for ii in range(self.channels[i]):
