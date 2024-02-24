@@ -29,11 +29,17 @@ class Function:
             case _:
                 exit("Wrong func number")
 
-    def f_for_vector_arrays(self, array):
-        new_array = [0] * len(array)
+    def f_for_1d_arrays(self, array):
         for i in range(len(array)):
-            new_array[i] = Function.f(self, array[i])
-        return new_array
+            array[i] = Function.f(self, array[i])
+        return array
+
+    def f_for_3d_arrays(self, array):
+        for i in range(len(array)):
+            for j in range(len(array[i])):
+                for k in range(len(array[i][j])):
+                    array[i][j][k] = Function.f(self, array[i][j][k])
+        return array
 
 
 class Network:
@@ -46,7 +52,7 @@ class Network:
         self.act_func_choices = act_func_choices
         array_1 = [Function] * len(act_func_choices)
         for i in range(len(act_func_choices)):
-            array_1[i].__init__(array_1[i], act_func_choices[i])
+            array_1[i].__init__(self, act_func_choices[i])
         self.act_func_array = array_1
         self.__init_weights__(self)
 
@@ -208,10 +214,7 @@ class Network:
                     sum_value = 0
                     for ii in range(current_kernel_size):
                         for jj in range(current_kernel_size):
-                            try:
-                                sum_value += current_array[i + ii][j + jj]
-                            except:
-                                print('xx')
+                            sum_value += current_array[i + ii][j + jj]
                     array_1.append(sum_value / (current_kernel_size ** 2))
                 new_array.append(array_1)
         elif self.pad_n_pool_func[current_index] == -1:
@@ -224,9 +227,11 @@ class Network:
         new_array = [0] * self.size[current_index + 1]
         for i in range(self.size[current_index]):
             for j in range(self.size[current_index + 1]):
-                new_array[j] += current_array[i] * self.MP_weights[current_mp_index][i][j]
+                value = current_array[i] * self.MP_weights[current_mp_index][i][j]
+                new_array[j] += value
         for j in range(self.size[current_index + 1]):
-            new_array[j] += 1 * self.MP_bios[current_mp_index][j]
+            value = 1 * self.MP_bios[current_mp_index][j]
+            new_array[j] += value
         return new_array
 
     def use_flatten(self, current_array):
@@ -252,12 +257,13 @@ class Network:
         for i in range(len(self.size) - 1):
             if self.operations[i] == 0:
                 current_array = self.use_kernel(self, i, current_array)
-                # use df
+                current_array = self.act_func_array[i].f_for_3d_arrays(self, current_array)
             elif self.operations[i] == 1:
                 for j in range(self.channels[i]):
                     current_array[j] = self.use_pooling(self, i, current_array[j])
             elif self.operations[i] == 2:
                 current_array = self.use_mp(self, i, i_for_mp, current_array)
+                current_array = self.act_func_array[i].f_for_1d_arrays(self, current_array)
                 i_for_mp += 1
             elif self.operations[i] == 3:
                 current_array = self.use_flatten(self, current_array)
