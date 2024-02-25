@@ -1,4 +1,4 @@
-In progress, wait for news
+Closed, because CNN v2 is better
 """
 shortnames:
 MP - multilayer perceptron
